@@ -1,0 +1,10 @@
+C:\Users\apriftis\source\repos\personal\nopCommerce\src\Presentation\Nop.Web\Plugins\Nop.Plugin.Payments.VivaPayments\Nop.Plugin.Payments.VivaPayments.deps.json
+C:\Users\apriftis\source\repos\personal\nopCommerce\src\Presentation\Nop.Web\Plugins\Nop.Plugin.Payments.VivaPayments\Nop.Plugin.Payments.VivaPayments.dll
+C:\Users\apriftis\source\repos\personal\nopCommerce\src\Presentation\Nop.Web\Plugins\Nop.Plugin.Payments.VivaPayments\Nop.Plugin.Payments.VivaPayments.pdb
+C:\Users\apriftis\source\repos\personal\nopCommerce\src\Plugins\Nop.Plugin.Payments.VivaPayments\obj\Debug\netcoreapp2.2\Nop.Plugin.Payments.VivaPayments.csprojAssemblyReference.cache
+C:\Users\apriftis\source\repos\personal\nopCommerce\src\Plugins\Nop.Plugin.Payments.VivaPayments\obj\Debug\netcoreapp2.2\Nop.Plugin.Payments.VivaPayments.csproj.CoreCompileInputs.cache
+C:\Users\apriftis\source\repos\personal\nopCommerce\src\Plugins\Nop.Plugin.Payments.VivaPayments\obj\Debug\netcoreapp2.2\Nop.Plugin.Payments.VivaPayments.AssemblyInfoInputs.cache
+C:\Users\apriftis\source\repos\personal\nopCommerce\src\Plugins\Nop.Plugin.Payments.VivaPayments\obj\Debug\netcoreapp2.2\Nop.Plugin.Payments.VivaPayments.AssemblyInfo.cs
+C:\Users\apriftis\source\repos\personal\nopCommerce\src\Plugins\Nop.Plugin.Payments.VivaPayments\obj\Debug\netcoreapp2.2\Nop.Plugin.Payments.VivaPayments.csproj.CopyComplete
+C:\Users\apriftis\source\repos\personal\nopCommerce\src\Plugins\Nop.Plugin.Payments.VivaPayments\obj\Debug\netcoreapp2.2\Nop.Plugin.Payments.VivaPayments.dll
+C:\Users\apriftis\source\repos\personal\nopCommerce\src\Plugins\Nop.Plugin.Payments.VivaPayments\obj\Debug\netcoreapp2.2\Nop.Plugin.Payments.VivaPayments.pdb

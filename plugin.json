@@ -1,0 +1,11 @@
+﻿{
+  "Group": "Payment methods",
+  "FriendlyName": "Viva Wallet",
+  "SystemName": "Payments.VivaWallet",
+  "Version": "1.49",
+  "SupportedVersions": [ "4.20" ],
+  "Author": "nopCommerce team",
+  "DisplayOrder": 1,
+  "FileName": "Nop.Plugin.Payments.VivaWallet.dll",
+  "Description": "This plugin allows paying with PayPal Standard"
+}

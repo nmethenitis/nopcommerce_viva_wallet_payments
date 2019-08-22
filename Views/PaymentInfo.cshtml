@@ -1,0 +1,73 @@
+﻿@{
+    Layout = "";
+}
+@model Nop.Plugin.Payments.VivaWallet.Models.VivaHelper
+@inject Nop.Plugin.Payments.VivaWallet.VivaSettings _settings
+<form action="" method="POST" id="payment-form">
+    <div class="form-row">
+        <label>
+            <span>Cardholder Name</span>
+            <input type="text" size="20" name="txtCardHolder" autocomplete="off" data-vp="cardholder" />
+        </label>
+    </div>
+
+    <div class="form-row">
+        <label>
+            <span>Card Number</span>
+            <input type="text" size="20" name="txtCardNumber" autocomplete="off" data-vp="cardnumber" />
+        </label>
+    </div>
+
+    <div class="form-row">
+        <label>
+            <span>CVV</span>
+            <input type="text" name="txtCVV" size="4" autocomplete="off" data-vp="cvv" />
+        </label>
+    </div>
+
+    <div class="form-row">
+        <label>
+            <span>Expiration (MM/YYYY)</span>
+            <input type="text" size="2" name="txtMonth" autocomplete="off" data-vp="month" />
+        </label>
+        <span> / </span>
+        <input type="text" size="4" name="txtYear" autocomplete="off" data-vp="year" />
+    </div>
+</form>
+<script type="text/javascript" defer>
+    $(document).ready(function () {
+        var el = $("#payment-info-buttons-container .payment-info-next-step-button");
+
+        $(el).click(function (e) {
+            $(el).val("Please wait...");
+            VivaPayments.cards.requestToken();
+        });
+
+        $(el).removeAttr('onclick')
+
+        VivaPayments.cards.setup({
+            publicKey: encodeURI("@(_settings.PublicKey)"),
+            baseURL: "@(_settings.BaseApiUrl)",
+            cardTokenHandler: function (response) {
+                if (!response.Error) {
+                    createCookie(response.Token);
+                    $(el).val("Continue");
+                    PaymentInfo.save();
+                }
+                else {
+                    $(el).val("Continue");
+                    alert(response.Error);
+                }
+            }
+        });
+
+
+        function createCookie(value) {
+            var date = new Date();
+            date.setTime(date.getTime() + (1 * 1 * 10 * 60 * 1000));
+            var expires = "; expires=" + date.toGMTString();
+            document.cookie = encodeURIComponent("vvtkn") + "=" + encodeURIComponent(value) + expires + "; path=/";
+        }
+
+    });
+</script>

@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Nop.Plugin.Payments.VivaWallet</id>
+    <version>1.0.0</version>
+    <authors>Alex Priftis</authors>
+    <owners>Alex Priftis</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Package Description</description>
+    <copyright>SOME_COPYRIGHT</copyright>
+    <repository type="Git" url="REPOSITORY_URL" />
+    <dependencies>
+      <group targetFramework=".NETCoreApp2.2">
+        <dependency id="Nop.Web.Framework" version="4.2.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+    <contentFiles>
+      <files include="any/netcoreapp2.2/plugin.json" buildAction="Content" />
+      <files include="any/netcoreapp2.2/Views/Configure.cshtml" buildAction="Content" />
+      <files include="any/netcoreapp2.2/Views/_ViewImports.cshtml" buildAction="Content" />
+      <files include="any/netcoreapp2.2/logo.jpg" buildAction="Content" />
+    </contentFiles>
+  </metadata>
+  <files>
+    <file src="C:\Users\apriftis\source\repos\personal\nopCommerce\src\Presentation\Nop.Web\Plugins\Nop.Plugin.Payments.VivaWallet\Nop.Plugin.Payments.VivaWallet.dll" target="lib\netcoreapp2.2\Nop.Plugin.Payments.VivaWallet.dll" />
+    <file src="C:\Users\apriftis\source\repos\personal\nopCommerce\src\Plugins\Nop.Plugin.Payments.VivaWallet\plugin.json" target="content\plugin.json" />
+    <file src="C:\Users\apriftis\source\repos\personal\nopCommerce\src\Plugins\Nop.Plugin.Payments.VivaWallet\plugin.json" target="contentFiles\any\netcoreapp2.2\plugin.json" />
+    <file src="C:\Users\apriftis\source\repos\personal\nopCommerce\src\Plugins\Nop.Plugin.Payments.VivaWallet\Views\Configure.cshtml" target="content\Views\Configure.cshtml" />
+    <file src="C:\Users\apriftis\source\repos\personal\nopCommerce\src\Plugins\Nop.Plugin.Payments.VivaWallet\Views\Configure.cshtml" target="contentFiles\any\netcoreapp2.2\Views\Configure.cshtml" />
+    <file src="C:\Users\apriftis\source\repos\personal\nopCommerce\src\Plugins\Nop.Plugin.Payments.VivaWallet\Views\_ViewImports.cshtml" target="content\Views\_ViewImports.cshtml" />
+    <file src="C:\Users\apriftis\source\repos\personal\nopCommerce\src\Plugins\Nop.Plugin.Payments.VivaWallet\Views\_ViewImports.cshtml" target="contentFiles\any\netcoreapp2.2\Views\_ViewImports.cshtml" />
+    <file src="C:\Users\apriftis\source\repos\personal\nopCommerce\src\Plugins\Nop.Plugin.Payments.VivaWallet\logo.jpg" target="content\logo.jpg" />
+    <file src="C:\Users\apriftis\source\repos\personal\nopCommerce\src\Plugins\Nop.Plugin.Payments.VivaWallet\logo.jpg" target="contentFiles\any\netcoreapp2.2\logo.jpg" />
+  </files>
+</package>
