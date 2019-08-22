@@ -45,7 +45,12 @@ namespace Nop.Plugin.Payments.VivaWallet.Services
         /// <param name="eventMessage">Event message</param>
         public void HandleEvent(PageRenderingEvent eventMessage)
         {
+            if (eventMessage?.Helper?.ViewContext?.ActionDescriptor == null)
+                return;
+
             //check whether the plugin is active
+            if (!_paymentPluginManager.IsPluginActive(VivaDefaults.SystemName))
+                return;
 
             //add js script to one page checkout
             if (eventMessage.GetRouteNames().Any(routeName => routeName.Equals("CheckoutOnePage"))) {

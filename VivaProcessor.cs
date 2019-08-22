@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Nop.Core;
 using Nop.Core.Domain.Orders;
+using Nop.Plugin.Payments.VivaWallet.Models;
 using Nop.Services.Common;
 using Nop.Services.Configuration;
 using Nop.Services.Localization;
@@ -26,7 +27,7 @@ namespace Nop.Plugin.Payments.VivaWallet
         private readonly IPaymentService _paymentService;
         private readonly ISettingService _settingService;
         private readonly IWebHelper _webHelper;
-        private readonly VivaSettings vivaSettings;
+        private readonly VivaSettings _vivaSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         bool IPaymentMethod.SupportCapture => false;
@@ -55,7 +56,7 @@ namespace Nop.Plugin.Payments.VivaWallet
             _paymentService = paymentService;
             _settingService = settingService;
             _webHelper = webHelper;
-            this.vivaSettings = vivaSettings;
+            _vivaSettings = vivaSettings;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -85,7 +86,7 @@ namespace Nop.Plugin.Payments.VivaWallet
 
         public decimal GetAdditionalHandlingFee(IList<ShoppingCartItem> cart, string paymentMethodSystemName)
         {
-            return _paymentService.CalculateAdditionalFee(cart, 0, false);
+            return 0; // _paymentService.CalculateAdditionalFee(cart, 0, false);
         }
 
         public string GetMaskedCreditCardNumber(string creditCardNumber)
@@ -119,41 +120,24 @@ namespace Nop.Plugin.Payments.VivaWallet
 
             return result;
         }
-
-        //private Guid _MerchantId = .LoadSetting<VivaSettings>(_storeContext.ActiveStoreScopeConfiguration); //new Guid("9faf39a6-11bf-4101-aa1e-0a9ae078761a");
-        //private readonly string _ApiKey = "987654Al!";
-        //private readonly string _BaseApiUrl = "https://demo.vivapayments.com";
-        //private readonly string _PaymentsUrl = "/api/transactions";
-        //private readonly string _PaymentsCreateOrderUrl = "/api/orders";
-        //private readonly string _SourceCode = "6254";
-
-
-        public class TransactionResult
-        {
-            public string StatusId { get; set; }
-            public Guid TransactionId { get; set; }
-            public int ErrorCode { get; set; }
-            public string ErrorText { get; set; }
-            public DateTime TimeStamp { get; set; }
-        }
        
         private void ExecuteVivaPayment(decimal amount)
         {
             var token = _httpContextAccessor.HttpContext.Request.Cookies["vvtkn"];
-            var cl = new RestClient(vivaSettings.BaseApiUrl)
+            var cl = new RestClient(_vivaSettings.BaseApiUrl)
             {
                 Authenticator = new HttpBasicAuthenticator(
-                  vivaSettings.MerchantId.ToString(),
-                  vivaSettings.ApiKey)
+                  _vivaSettings.MerchantId.ToString(),
+                  _vivaSettings.ApiKey)
             };
 
             var _orderCode = CreateOrder(amount * 100);
 
-            var req = new RestRequest(vivaSettings.PaymentsUrl, Method.POST) { RequestFormat = DataFormat.Json };
+            var req = new RestRequest(_vivaSettings.PaymentsUrl, Method.POST) { RequestFormat = DataFormat.Json };
             req.AddJsonBody(new
             {
                 OrderCode = _orderCode,
-                SourceCode = vivaSettings.SourceCode,
+                SourceCode = _vivaSettings.SourceCode,
                 CreditCard = new
                 {
                     Token = token
@@ -172,31 +156,22 @@ namespace Nop.Plugin.Payments.VivaWallet
             }
         }
 
-        public class OrderResult
-        {
-            public long OrderCode { get; set; }
-            public int ErrorCode { get; set; }
-            public string ErrorText { get; set; }
-            public DateTime TimeStamp { get; set; }
-
-        }
-
 
         private long CreateOrder(decimal amount)
         {
-            var cl = new RestClient(vivaSettings.BaseApiUrl)
+            var cl = new RestClient(_vivaSettings.BaseApiUrl)
             {
                 Authenticator = new HttpBasicAuthenticator(
-                    vivaSettings.MerchantId.ToString(),
-                    vivaSettings.ApiKey)
+                    _vivaSettings.MerchantId.ToString(),
+                    _vivaSettings.ApiKey)
             };
 
-            var req = new RestRequest(vivaSettings.PaymentsCreateOrderUrl, Method.POST);
+            var req = new RestRequest(_vivaSettings.PaymentsCreateOrderUrl, Method.POST);
 
             req.AddJsonBody(new
             {
                 Amount = amount,    // Amount is in cents
-                SourceCode = vivaSettings.SourceCode
+                SourceCode = _vivaSettings.SourceCode
             });
 
             try
@@ -262,20 +237,14 @@ namespace Nop.Plugin.Payments.VivaWallet
 
         public decimal GetAdditionalHandlingFee(IList<ShoppingCartItem> cart)
         {
-            return _paymentService.CalculateAdditionalFee(cart,
-              0, false);
+            return 0; // _paymentService.CalculateAdditionalFee(cart, 0, false);
         }
 
         public IList<string> ValidatePaymentForm(IFormCollection form)
         {
             return new List<string>();
         }
-
-
-        public class CardAccess
-        {
-            public string CartTkn { get; set; }
-        }
+        
         public ProcessPaymentRequest GetPaymentInfo(IFormCollection form)
         {
             return new ProcessPaymentRequest();
@@ -283,7 +252,7 @@ namespace Nop.Plugin.Payments.VivaWallet
 
         public string GetPublicViewComponentName()
         {
-            return "VivaWalletPayment";
+            return "VivaWalletPayments";
         }
     }
 }

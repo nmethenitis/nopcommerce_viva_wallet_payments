@@ -43,10 +43,10 @@
             VivaPayments.cards.requestToken();
         });
 
-        $(el).removeAttr('onclick')
+        $(el).removeAttr('onclick');
 
         VivaPayments.cards.setup({
-            publicKey: decodeURIComponent("@(_settings.PublicKey)"),
+            publicKey: @(Html.Raw(_settings.PublicKey)),
             baseURL: "@(_settings.BaseApiUrl)",
             cardTokenHandler: function (response) {
                 if (!response.Error) {
@@ -68,6 +68,5 @@
             var expires = "; expires=" + date.toGMTString();
             document.cookie = encodeURIComponent("vvtkn") + "=" + encodeURIComponent(value) + expires + "; path=/";
         }
-
     });
 </script>
