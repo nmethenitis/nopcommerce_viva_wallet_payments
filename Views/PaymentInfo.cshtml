@@ -46,7 +46,7 @@
         $(el).removeAttr('onclick')
 
         VivaPayments.cards.setup({
-            publicKey: encodeURI("@(_settings.PublicKey)"),
+            publicKey: decodeURIComponent("@(_settings.PublicKey)"),
             baseURL: "@(_settings.BaseApiUrl)",
             cardTokenHandler: function (response) {
                 if (!response.Error) {
