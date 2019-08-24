@@ -6,14 +6,14 @@
 <form action="" method="POST" id="payment-form">
     <div class="form-row">
         <label>
-            <span>Cardholder Name</span>
+            <span>@T("Plugins.Payments.VivaWallet.PaymentInfo.CardholderName")</span>
             <input type="text" size="20" name="txtCardHolder" autocomplete="off" data-vp="cardholder" />
         </label>
     </div>
 
     <div class="form-row">
         <label>
-            <span>Card Number</span>
+            <span>@T("Plugins.Payments.VivaWallet.PaymentInfo.CardNumber")</span>
             <input type="text" size="20" name="txtCardNumber" autocomplete="off" data-vp="cardnumber" />
         </label>
     </div>
@@ -27,7 +27,7 @@
 
     <div class="form-row">
         <label>
-            <span>Expiration (MM/YYYY)</span>
+            <span>@T("Plugins.Payments.VivaWallet.PaymentInfo.Expiration") (MM/YYYY)</span>
             <input type="text" size="2" name="txtMonth" autocomplete="off" data-vp="month" />
         </label>
         <span> / </span>
@@ -35,32 +35,31 @@
     </div>
 </form>
 <script type="text/javascript" defer>
-    $(document).ready(function () {
-        var el = $("#payment-info-buttons-container .payment-info-next-step-button");
+    (function () {
+        var el = document.querySelector("#payment-info-buttons-container .payment-info-next-step-button");
 
-        $(el).click(function (e) {
-            $(el).val("Please wait...");
+        el.addEventListener("click", function () {
+            el.value = "@T("Plugins.Payments.VivaWallet.PaymentInfo.PleaseWait")";
             VivaPayments.cards.requestToken();
         });
 
-        $(el).removeAttr('onclick');
+        el.removeAttribute('onclick');
 
         VivaPayments.cards.setup({
-            publicKey: @(Html.Raw(_settings.PublicKey)),
+            publicKey: "@(Html.Raw(_settings.PublicKey))",
             baseURL: "@(_settings.BaseApiUrl)",
             cardTokenHandler: function (response) {
                 if (!response.Error) {
                     createCookie(response.Token);
-                    $(el).val("Continue");
+                    el.value = "@T("Plugins.Payments.VivaWallet.PaymentInfo.Continue")";
                     PaymentInfo.save();
                 }
                 else {
-                    $(el).val("Continue");
+                    el.value = "@T("Plugins.Payments.VivaWallet.PaymentInfo.Continue")";
                     alert(response.Error);
                 }
             }
         });
-
 
         function createCookie(value) {
             var date = new Date();
@@ -68,5 +67,5 @@
             var expires = "; expires=" + date.toGMTString();
             document.cookie = encodeURIComponent("vvtkn") + "=" + encodeURIComponent(value) + expires + "; path=/";
         }
-    });
+    })();
 </script>

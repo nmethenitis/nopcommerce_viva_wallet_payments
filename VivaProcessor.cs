@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.Serialization;
@@ -99,10 +100,7 @@ namespace Nop.Plugin.Payments.VivaWallet
             throw new NotImplementedException();
         }
 
-        public override void Install()
-        {
-            base.Install();
-        }
+
 
         public void PostProcessPayment(PostProcessPaymentRequest postProcessPaymentRequest)
         {
@@ -120,7 +118,7 @@ namespace Nop.Plugin.Payments.VivaWallet
 
             return result;
         }
-       
+
         private void ExecuteVivaPayment(decimal amount)
         {
             var token = _httpContextAccessor.HttpContext.Request.Cookies["vvtkn"];
@@ -171,7 +169,13 @@ namespace Nop.Plugin.Payments.VivaWallet
             req.AddJsonBody(new
             {
                 Amount = amount,    // Amount is in cents
-                SourceCode = _vivaSettings.SourceCode
+                SourceCode = _vivaSettings.SourceCode,
+                RequestLang = "en",
+                FullName = "Alexandros Priftis",
+                Email = "alexprift@yahoo.gr",
+                MerchantTrns = "merchant descri",
+                CustomerTrns = "customer descri",
+
             });
 
             try
@@ -208,10 +212,66 @@ namespace Nop.Plugin.Payments.VivaWallet
             return new RefundPaymentResult { Errors = new[] { "Refund method not supported" } };
         }
 
+        private Dictionary<string, Dictionary<string, string>> AllResources { get; set; } = 
+            new Dictionary<string, Dictionary<string, string>>();
 
+        public Dictionary<string, Dictionary<string, string>> GetResourcesEn()
+        {
+            var r = new Dictionary<string, string>
+            {
+                { "Plugins.Payments.VivaWallet.PaymentInfo.PleaseWait", "Please wait..." },
+                { "Plugins.Payments.VivaWallet.PaymentInfo.Continue", "Continue" },
+                { "Plugins.Payments.VivaWallet.PaymentInfo.Expiration", "Expiration"},
+                { "Plugins.Payments.VivaWallet.PaymentInfo.CardNumber", "Card Number"},
+                { "Plugins.Payments.VivaWallet.PaymentInfo.CardholderName", "Cardholder Name"}
+            };
+            return new Dictionary<string, Dictionary<string, string>>
+            {
+                { "en-GB", r }
+            };
+        }
+        public Dictionary<string, Dictionary<string, string>> GetResourcesGr()
+        {
+            var r = new Dictionary<string, string>
+            {
+                { "Plugins.Payments.VivaWallet.PaymentInfo.PleaseWait", "Παρακαλώ περιμένετε..." },
+                { "Plugins.Payments.VivaWallet.PaymentInfo.Continue", "Συνέχεια" },
+                { "Plugins.Payments.VivaWallet.PaymentInfo.Expiration", "Ημερ. Λήξης"},
+                { "Plugins.Payments.VivaWallet.PaymentInfo.CardNumber", "Αριθμός κάρτας"},
+                { "Plugins.Payments.VivaWallet.PaymentInfo.CardholderName", "'Ονομ/νυμο κατόχου"}
+            };
+            return new Dictionary<string, Dictionary<string, string>>
+            {
+                { "el-GR", r }
+            };
+        }
+
+        public override void Install()
+        {
+            AllResources.Add(GetResourcesEn().First().Key, GetResourcesEn().First().Value);
+            AllResources.Add(GetResourcesGr().First().Key, GetResourcesGr().First().Value);
+
+            foreach (var item in AllResources)
+            {
+                foreach (var resources in item.Value)
+                {
+                    _localizationService.AddOrUpdatePluginLocaleResource(resources.Key, resources.Value, item.Key);
+                }
+            }
+
+            base.Install();
+        }
 
         public override void Uninstall()
         {
+            //default is english
+            var defautlResources = GetResourcesEn();
+
+            foreach (var item in defautlResources)
+            {
+                _localizationService.DeletePluginLocaleResource(item.Key);
+            }
+
             base.Uninstall();
         }
 
@@ -244,7 +304,7 @@ namespace Nop.Plugin.Payments.VivaWallet
         {
             return new List<string>();
         }
-        
+
         public ProcessPaymentRequest GetPaymentInfo(IFormCollection form)
         {
             return new ProcessPaymentRequest();
