@@ -226,7 +226,7 @@ namespace Nop.Plugin.Payments.VivaWallet
         {
             try
             {
-                var amount = (int)(refundPaymentRequest.Order.OrderTotal * 100);
+                var amount = (int)(refundPaymentRequest.AmountToRefund * 100);
                 VivaRefund(refundPaymentRequest.Order.CaptureTransactionId, amount.ToString());
 
                 return new RefundPaymentResult
@@ -252,6 +252,7 @@ namespace Nop.Plugin.Payments.VivaWallet
                    _vivaSettings.ApiKey)
             };
            
+
             try
             {
                 var req = new RestRequest("/api/transactions/" + transactionId + "?amount=" + amount, Method.DELETE);
