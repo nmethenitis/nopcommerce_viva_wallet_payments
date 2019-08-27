@@ -13,7 +13,9 @@ using Nop.Core.Domain.Orders;
 using Nop.Plugin.Payments.VivaWallet.Models;
 using Nop.Services.Common;
 using Nop.Services.Configuration;
+using Nop.Services.Customers;
 using Nop.Services.Localization;
+using Nop.Services.Orders;
 using Nop.Services.Payments;
 using Nop.Services.Plugins;
 using Nop.Web.Framework.Infrastructure;
@@ -30,12 +32,15 @@ namespace Nop.Plugin.Payments.VivaWallet
         private readonly IWebHelper _webHelper;
         private readonly VivaSettings _vivaSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ICustomerService customerService;
+        private readonly IOrderProcessingService orderProcessingService;
+
 
         bool IPaymentMethod.SupportCapture => false;
 
         bool IPaymentMethod.SupportPartiallyRefund => false;
 
-        bool IPaymentMethod.SupportRefund => false;
+        bool IPaymentMethod.SupportRefund => true;
 
         bool IPaymentMethod.SupportVoid => false;
 
@@ -51,7 +56,9 @@ namespace Nop.Plugin.Payments.VivaWallet
             IPaymentService paymentService,
             ISettingService settingService,
             IWebHelper webHelper, VivaSettings vivaSettings,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IOrderProcessingService orderProcessingService,
+            ICustomerService customerService)
         {
             _localizationService = localizationService;
             _paymentService = paymentService;
@@ -59,6 +66,7 @@ namespace Nop.Plugin.Payments.VivaWallet
             _webHelper = webHelper;
             _vivaSettings = vivaSettings;
             _httpContextAccessor = httpContextAccessor;
+            this.customerService = customerService;
         }
 
         public CancelRecurringPaymentResult CancelRecurringPayment(CancelRecurringPaymentRequest cancelPaymentRequest)
@@ -107,19 +115,26 @@ namespace Nop.Plugin.Payments.VivaWallet
             //nothing
         }
 
-        public ProcessPaymentResult ProcessPayment(ProcessPaymentRequest ProcessPaymentRequest)
+        public ProcessPaymentResult ProcessPayment(ProcessPaymentRequest processPaymentRequest)
         {
-            ExecuteVivaPayment(ProcessPaymentRequest.OrderTotal);
+            var customer = customerService.GetCustomerById(processPaymentRequest.CustomerId);
+            var email = customer.BillingAddress.Email;
+            var fullName = customer.BillingAddress.FirstName + " " + customer.BillingAddress.LastName;
+
+            var executeAndGetTransactionId = ExecuteVivaPayment(processPaymentRequest.OrderTotal, fullName, email, processPaymentRequest.OrderGuid.ToString());
+
 
             var result = new ProcessPaymentResult
             {
-                NewPaymentStatus = Core.Domain.Payments.PaymentStatus.Paid
+                NewPaymentStatus = Core.Domain.Payments.PaymentStatus.Paid,
+                CaptureTransactionId = executeAndGetTransactionId
             };
 
             return result;
         }
 
-        private void ExecuteVivaPayment(decimal amount)
+
+        private string ExecuteVivaPayment(decimal amount, string customerFullName, string customerEmail, string nopTransactionCode)
         {
             var token = _httpContextAccessor.HttpContext.Request.Cookies["vvtkn"];
             var cl = new RestClient(_vivaSettings.BaseApiUrl)
@@ -129,7 +144,7 @@ namespace Nop.Plugin.Payments.VivaWallet
                   _vivaSettings.ApiKey)
             };
 
-            var _orderCode = CreateOrder(amount * 100);
+            var _orderCode = CreateOrder(amount * 100, customerFullName, customerEmail, nopTransactionCode);
 
             var req = new RestRequest(_vivaSettings.PaymentsUrl, Method.POST) { RequestFormat = DataFormat.Json };
             req.AddJsonBody(new
@@ -147,6 +162,7 @@ namespace Nop.Plugin.Payments.VivaWallet
             if (res.Data != null && res.Data.ErrorCode == 0 && res.Data.StatusId == "F")
             {
                 _httpContextAccessor.HttpContext.Response.Cookies.Delete("vvtkn");
+                return res.Data.TransactionId.ToString();
             }
             else
             {
@@ -155,7 +171,7 @@ namespace Nop.Plugin.Payments.VivaWallet
         }
 
 
-        private long CreateOrder(decimal amount)
+        private long CreateOrder(decimal amount, string customerFullName, string customerEmail, string nopTransactionCode)
         {
             var cl = new RestClient(_vivaSettings.BaseApiUrl)
             {
@@ -171,16 +187,15 @@ namespace Nop.Plugin.Payments.VivaWallet
                 Amount = amount,    // Amount is in cents
                 SourceCode = _vivaSettings.SourceCode,
                 RequestLang = "en",
-                FullName = "Alexandros Priftis",
-                Email = "alexprift@yahoo.gr",
-                MerchantTrns = "merchant descri",
-                CustomerTrns = "customer descri",
-
+                FullName = customerFullName,
+                Email = customerEmail,
+                MerchantTrns = nopTransactionCode,
+                //CustomerTrns = "customer descri",
             });
 
             try
             {
-                var res = cl.Execute<OrderResult>(req);
+                var res = cl.Execute<VivaResult>(req);
                 if (res.Data != null && res.Data.ErrorCode == 0)
                 {
                     return res.Data.OrderCode;
@@ -189,7 +204,7 @@ namespace Nop.Plugin.Payments.VivaWallet
                     return 0;
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
                 throw;
@@ -209,13 +224,53 @@ namespace Nop.Plugin.Payments.VivaWallet
 
         public RefundPaymentResult Refund(RefundPaymentRequest refundPaymentRequest)
         {
-            return new RefundPaymentResult { Errors = new[] { "Refund method not supported" } };
+            try
+            {
+                var amount = (int)(refundPaymentRequest.Order.OrderTotal * 100);
+                VivaRefund(refundPaymentRequest.Order.CaptureTransactionId, amount.ToString());
+
+                return new RefundPaymentResult
+                {
+                    NewPaymentStatus = refundPaymentRequest.IsPartialRefund
+                        ? Core.Domain.Payments.PaymentStatus.PartiallyRefunded
+                        : Core.Domain.Payments.PaymentStatus.Refunded
+                };
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
         }
 
-        private Dictionary<string, Dictionary<string, string>> AllResources { get; set; } = 
-            new Dictionary<string, Dictionary<string, string>>();
+        public void VivaRefund(string transactionId,string amount)
+        {
+            var cl = new RestClient(_vivaSettings.BaseApiUrl)
+            {
+                Authenticator = new HttpBasicAuthenticator(
+                   _vivaSettings.MerchantId.ToString(),
+                   _vivaSettings.ApiKey)
+            };
+           
+            try
+            {
+                var req = new RestRequest("/api/transactions/" + transactionId + "?amount=" + amount, Method.DELETE);
+                var res = cl.Execute<VivaResult>(req);
+                if (!(res.Data.StatusId == "F" && res.Data.ErrorCode == 0))
+                {
+                    throw new Exception("Refund is not completed");
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
 
-        public Dictionary<string, Dictionary<string, string>> GetResourcesEn()
+
+        private Dictionary<string, Dictionary<string, string>> AllResources { get; set; } =
+            new Dictionary<string, Dictionary<string, string>>();
+        private Dictionary<string, Dictionary<string, string>> GetResourcesEn()
         {
             var r = new Dictionary<string, string>
             {
@@ -230,7 +285,7 @@ namespace Nop.Plugin.Payments.VivaWallet
                 { "en-GB", r }
             };
         }
-        public Dictionary<string, Dictionary<string, string>> GetResourcesGr()
+        private Dictionary<string, Dictionary<string, string>> GetResourcesGr()
         {
             var r = new Dictionary<string, string>
             {
@@ -307,7 +362,9 @@ namespace Nop.Plugin.Payments.VivaWallet
 
         public ProcessPaymentRequest GetPaymentInfo(IFormCollection form)
         {
-            return new ProcessPaymentRequest();
+            var reqeust = new ProcessPaymentRequest();
+
+            return reqeust;
         }
 
         public string GetPublicViewComponentName()
