@@ -17,3 +17,6 @@ This project is totally free and open source
 
 ### Pre-rquirements
 You need a merchant account from viva wallet. It is free. Get one HERE.
+
+## NopCommerce versions
+4.20
