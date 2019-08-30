@@ -18,7 +18,7 @@ This project is totally free and open source
 3. Refund
 
 ### Pre-rquirements
-You need a merchant account from viva wallet. It is free. Get one HERE.
+You need a merchant account from viva wallet. It is free. Get one [HERE](http://vivawallet.com/).
 
 ## NopCommerce versions
 4.20
