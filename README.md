@@ -1,3 +1,5 @@
+![viva wallet payments](https://camo.githubusercontent.com/de4713fedb73c6132a2287e9d005aa020f127444/68747470733a2f2f646576656c6f7065722e7669766177616c6c65742e636f6d2f696d616765732f7669766177616c6c65746c6f676f2e706e67)
+
 # NopCommerce VivaWallet payments plugin
 This project is totally free and open source
 
