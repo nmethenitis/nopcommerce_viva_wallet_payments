@@ -16,7 +16,7 @@ using Nop.Web.Framework.Mvc.Filters;
 namespace Nop.Plugin.Payments.VivaWallet.Controllers
 {
     [AuthorizeAdmin]
-    [Area(AreaNames.Admin)]
+    [Area(AreaNames.ADMIN)]
     public class VivaWalletController : BasePaymentController 
     {
         #region Fields
@@ -47,14 +47,12 @@ namespace Nop.Plugin.Payments.VivaWallet.Controllers
         #endregion
 
         #region Methods
-
-        public IActionResult Configure()
+        [CheckPermission(StandardPermission.Configuration.MANAGE_PAYMENT_METHODS)]
+        public async Task<IActionResult> Configure()
         {
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManagePaymentMethods))
-                return AccessDeniedView();
 
             //load settings for a chosen store scope
-            var storeScope = _storeContext.ActiveStoreScopeConfiguration;
+            var storeScope = await _storeContext.GetActiveStoreScopeConfigurationAsync();
             var manualPaymentSettings = _settingService.LoadSetting<VivaSettings>(storeScope);
 
             var model = new ConfigurationModel
@@ -96,18 +94,15 @@ namespace Nop.Plugin.Payments.VivaWallet.Controllers
             return View("~/Plugins/Nop.Plugin.Payments.VivaWallet/Views/Configure.cshtml", model);
         }
 
-        [HttpPost]
-        [AdminAntiForgery]
-        public IActionResult Configure(ConfigurationModel model)
+        [CheckPermission(StandardPermission.Configuration.MANAGE_PAYMENT_METHODS)]
+        public async Task<IActionResult> Configure(ConfigurationModel model)
         {
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManagePaymentMethods))
-                return AccessDeniedView();
 
             if (!ModelState.IsValid)
-                return Configure();
+                return await Configure();
 
             //load settings for a chosen store scope
-            var storeScope = _storeContext.ActiveStoreScopeConfiguration;
+            var storeScope = await _storeContext.GetActiveStoreScopeConfigurationAsync();
             var manualPaymentSettings = _settingService.LoadSetting<VivaSettings>(storeScope);
 
             //save settings
@@ -126,30 +121,23 @@ namespace Nop.Plugin.Payments.VivaWallet.Controllers
              * This behavior can increase performance because cached settings will not be cleared 
              * and loaded from database after each update */
 
-            _settingService.SaveSettingOverridablePerStore(manualPaymentSettings, x => x.ApiKey, model.ApiKey_OvverideForStore, storeScope, true);
-            _settingService.SaveSettingOverridablePerStore(manualPaymentSettings, x => x.ApiPassword, model.ApiPassword_OvverideForStore, storeScope, true);
-            _settingService.SaveSettingOverridablePerStore(manualPaymentSettings, x => x.SourceCode, model.SourceCode_OvverideForStore, storeScope, true);
-            _settingService.SaveSettingOverridablePerStore(manualPaymentSettings, x => x.VivaCheckoutUrl, model.VivaCheckoutUrl_OvverideForStore, storeScope, true);
-            _settingService.SaveSettingOverridablePerStore(manualPaymentSettings, x => x.VivaWalletEndPoint, model.VivaWalletEndPoint_OvverideForStore, storeScope, true);
-
-
-
-            _settingService.SaveSettingOverridablePerStore(manualPaymentSettings, x => x.BaseApiUrl, model.BaseApiUrl_OvverideForStore, storeScope, true);
-
-            _settingService.SaveSettingOverridablePerStore(manualPaymentSettings, x => x.MerchantId, model.MerchantId_OvverideForStore, storeScope, true);
-
-            _settingService.SaveSettingOverridablePerStore(manualPaymentSettings, x => x.PaymentsCreateOrderUrl, model.PaymentsCreateOrderUrl_OvverideForStore, storeScope, true);
-
-            _settingService.SaveSettingOverridablePerStore(manualPaymentSettings, x => x.PaymentsUrl, model.PaymentsUrl_OvverideForStore, storeScope, true);
-
-            _settingService.SaveSettingOverridablePerStore(manualPaymentSettings, x => x.PublicKey, model.PublicKey_OvverideForStore, storeScope, true);
+            await _settingService.SaveSettingOverridablePerStoreAsync(manualPaymentSettings, x => x.ApiKey, model.ApiKey_OvverideForStore, storeScope, true);
+            await _settingService.SaveSettingOverridablePerStoreAsync(manualPaymentSettings, x => x.ApiPassword, model.ApiPassword_OvverideForStore, storeScope, true);
+            await _settingService.SaveSettingOverridablePerStoreAsync(manualPaymentSettings, x => x.SourceCode, model.SourceCode_OvverideForStore, storeScope, true);
+            await _settingService.SaveSettingOverridablePerStoreAsync(manualPaymentSettings, x => x.VivaCheckoutUrl, model.VivaCheckoutUrl_OvverideForStore, storeScope, true);
+            await _settingService.SaveSettingOverridablePerStoreAsync(manualPaymentSettings, x => x.VivaWalletEndPoint, model.VivaWalletEndPoint_OvverideForStore, storeScope, true);
+            await _settingService.SaveSettingOverridablePerStoreAsync(manualPaymentSettings, x => x.BaseApiUrl, model.BaseApiUrl_OvverideForStore, storeScope, true);
+            await _settingService.SaveSettingOverridablePerStoreAsync(manualPaymentSettings, x => x.MerchantId, model.MerchantId_OvverideForStore, storeScope, true);
+            await _settingService.SaveSettingOverridablePerStoreAsync(manualPaymentSettings, x => x.PaymentsCreateOrderUrl, model.PaymentsCreateOrderUrl_OvverideForStore, storeScope, true);
+            await _settingService.SaveSettingOverridablePerStoreAsync(manualPaymentSettings, x => x.PaymentsUrl, model.PaymentsUrl_OvverideForStore, storeScope, true);
+            await _settingService.SaveSettingOverridablePerStoreAsync(manualPaymentSettings, x => x.PublicKey, model.PublicKey_OvverideForStore, storeScope, true);
 
             //now clear settings cache
             _settingService.ClearCache();
 
-            _notificationService.SuccessNotification(_localizationService.GetResource("Admin.Plugins.Saved"));
+            _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Plugins.Saved"));
 
-            return Configure();
+            return await Configure();
         }
 
         [HttpPost]

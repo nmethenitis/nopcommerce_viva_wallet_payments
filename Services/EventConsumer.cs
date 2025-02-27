@@ -1,7 +1,7 @@
 ﻿using Nop.Services.Events;
 using Nop.Services.Localization;
 using Nop.Services.Payments;
-using Nop.Services.Tasks;
+using Nop.Services.ScheduleTasks;
 using Nop.Web.Framework.Events;
 using Nop.Web.Framework.Models;
 using Nop.Web.Framework.UI;
@@ -39,6 +39,11 @@ namespace Nop.Plugin.Payments.VivaWallet.Services
 
         #region Methods
 
+
+        public Task HandleEventAsync(PageRenderingEvent eventMessage)
+        {
+            throw new NotImplementedException();
+        }
         /// <summary>
         /// Handle page rendering event
         /// </summary>
