@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Nop.Plugin.Payments.VivaWallet.Models
 {
-    public class VivaHelper : BaseNopModel
+    public record VivaHelper : BaseNopModel
     {
         public VivaHelper()
         {

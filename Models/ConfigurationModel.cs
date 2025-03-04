@@ -4,7 +4,7 @@ using System;
 
 namespace Nop.Plugin.Payments.VivaWallet.Models
 {
-    public class ConfigurationModel : BaseNopModel
+    public record ConfigurationModel : BaseNopModel
     {
         public int ActiveStoreScopeConfiguration { get; set; }
 

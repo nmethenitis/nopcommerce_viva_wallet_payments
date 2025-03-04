@@ -1,7 +1,7 @@
 ﻿using Nop.Services.Events;
 using Nop.Services.Localization;
 using Nop.Services.Payments;
-using Nop.Services.Tasks;
+using Nop.Services.ScheduleTasks;
 using Nop.Web.Framework.Events;
 using Nop.Web.Framework.Models;
 using Nop.Web.Framework.UI;
@@ -43,7 +43,7 @@ namespace Nop.Plugin.Payments.VivaWallet.Services
         /// Handle page rendering event
         /// </summary>
         /// <param name="eventMessage">Event message</param>
-        public void HandleEvent(PageRenderingEvent eventMessage)
+        public async Task HandleEventAsync(PageRenderingEvent eventMessage)
         {
             if (eventMessage?.Helper?.ViewContext?.ActionDescriptor == null)
                 return;
@@ -62,7 +62,7 @@ namespace Nop.Plugin.Payments.VivaWallet.Services
         /// Handle model received event
         /// </summary>
         /// <param name="eventMessage">Event message</param>
-        public void HandleEvent(ModelReceivedEvent<BaseNopModel> eventMessage)
+        public async Task HandleEventAsync(ModelReceivedEvent<BaseNopModel> eventMessage)
         {
             //whether received model is ScheduleTaskModel
             //if (!(eventMessage?.Model is ScheduleTaskModel scheduleTaskModel))
@@ -77,7 +77,7 @@ namespace Nop.Plugin.Payments.VivaWallet.Services
             //var accessTokenRenewalPeriod = scheduleTaskModel.Seconds / 60 / 60 / 24;
             //if (accessTokenRenewalPeriod > SquarePaymentDefaults.AccessTokenRenewalPeriodMax)
             //{
-            //    var error = string.Format(_localizationService.GetResource("Plugins.Payments.Square.AccessTokenRenewalPeriod.Error"),
+            //    var error = string.Format(await _localizationService.GetResourceAsync("Plugins.Payments.Square.AccessTokenRenewalPeriod.Error"),
             //        SquarePaymentDefaults.AccessTokenRenewalPeriodMax, SquarePaymentDefaults.AccessTokenRenewalPeriodRecommended);
             //    eventMessage.ModelState.AddModelError(string.Empty, error);
             //}

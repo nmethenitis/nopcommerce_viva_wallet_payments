@@ -42,3 +42,5 @@ C:\Users\apriftis\source\repos\personal\HarlemNopCommerce\Plugins\Nop.Plugin.Pay
 C:\Users\apriftis\source\repos\personal\HarlemNopCommerce\Plugins\Nop.Plugin.Payments.VivaWallet\obj\Debug\netcoreapp2.2\Nop.Plugin.Payments.VivaWallet.csproj.CopyComplete
 C:\Users\apriftis\source\repos\personal\HarlemNopCommerce\Plugins\Nop.Plugin.Payments.VivaWallet\obj\Debug\netcoreapp2.2\Nop.Plugin.Payments.VivaWallet.dll
 C:\Users\apriftis\source\repos\personal\HarlemNopCommerce\Plugins\Nop.Plugin.Payments.VivaWallet\obj\Debug\netcoreapp2.2\Nop.Plugin.Payments.VivaWallet.pdb
+C:\Users\nmethenitis\Documents\VSWorkspace\Lousousou\Web.App\src\Plugins\Nop.Plugin.Payments.VivaWallet\obj\Debug\netcoreapp2.2\Nop.Plugin.Payments.VivaWallet.dll
+C:\Users\nmethenitis\Documents\VSWorkspace\Lousousou\Web.App\src\Plugins\Nop.Plugin.Payments.VivaWallet\obj\Debug\netcoreapp2.2\Nop.Plugin.Payments.VivaWallet.pdb

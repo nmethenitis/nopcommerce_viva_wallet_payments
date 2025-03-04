@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Nop.Core;
 using Nop.Core.Domain.Orders;
+using Nop.Plugin.Payments.VivaWallet.Component;
 using Nop.Plugin.Payments.VivaWallet.Models;
 using Nop.Services.Common;
 using Nop.Services.Configuration;
@@ -69,23 +70,22 @@ namespace Nop.Plugin.Payments.VivaWallet
             this.customerService = customerService;
         }
 
-        public CancelRecurringPaymentResult CancelRecurringPayment(CancelRecurringPaymentRequest cancelPaymentRequest)
+        public Task<CancelRecurringPaymentResult> CancelRecurringPaymentAsync(CancelRecurringPaymentRequest cancelPaymentRequest)
         {
-            return new CancelRecurringPaymentResult();
+            return Task.FromResult(new CancelRecurringPaymentResult());
         }
 
-        public bool CanRePostProcessPayment(Order order)
+        public Task<bool> CanRePostProcessPaymentAsync(Order order)
         {
-            if (order == null)
-                throw new ArgumentNullException(nameof(order));
+            ArgumentNullException.ThrowIfNull(order);
 
             //it's not a redirection payment method. So we always return false
-            return false;
+            return Task.FromResult(false);
         }
 
-        public CapturePaymentResult Capture(CapturePaymentRequest capturePaymentRequest)
+        public Task<CapturePaymentResult> CaptureAsync(CapturePaymentRequest capturePaymentRequest)
         {
-            return new CapturePaymentResult { Errors = new[] { "Capture method not supported" } };
+            return Task.FromResult(new CapturePaymentResult { Errors = new[] { "Capture method not supported" } });
         }
 
         public Dictionary<string, object> DeserializeCustomValues(Order order)
@@ -110,16 +110,17 @@ namespace Nop.Plugin.Payments.VivaWallet
 
 
 
-        public void PostProcessPayment(PostProcessPaymentRequest postProcessPaymentRequest)
+        public Task PostProcessPaymentAsync(PostProcessPaymentRequest postProcessPaymentRequest)
         {
             //nothing
+            return Task.CompletedTask;
         }
 
-        public ProcessPaymentResult ProcessPayment(ProcessPaymentRequest processPaymentRequest)
+        public async Task<ProcessPaymentResult> ProcessPaymentAsync(ProcessPaymentRequest processPaymentRequest)
         {
-            var customer = customerService.GetCustomerById(processPaymentRequest.CustomerId);
-            var email = customer.BillingAddress.Email;
-            var fullName = customer.BillingAddress.FirstName + " " + customer.BillingAddress.LastName;
+            var customer = await customerService.GetCustomerByIdAsync(processPaymentRequest.CustomerId);
+            var email = customer.Email;
+            var fullName = $"{customer.FirstName} {customer.LastName}";
 
             var executeAndGetTransactionId = ExecuteVivaPayment(processPaymentRequest.OrderTotal, fullName, email, processPaymentRequest.OrderGuid.ToString());
 
@@ -211,7 +212,7 @@ namespace Nop.Plugin.Payments.VivaWallet
             }
         }
 
-        public ProcessPaymentResult ProcessRecurringPayment(ProcessPaymentRequest processPaymentRequest)
+        public Task<ProcessPaymentResult> ProcessRecurringPaymentAsync(ProcessPaymentRequest processPaymentRequest)
         {
             var result = new ProcessPaymentResult
             {
@@ -219,22 +220,22 @@ namespace Nop.Plugin.Payments.VivaWallet
                 Errors = new[] { "Void method not supported" }
             };
 
-            return result;
+            return Task.FromResult(result);
         }
 
-        public RefundPaymentResult Refund(RefundPaymentRequest refundPaymentRequest)
+        public Task<RefundPaymentResult> RefundAsync(RefundPaymentRequest refundPaymentRequest)
         {
             try
             {
                 var amount = (int)(refundPaymentRequest.AmountToRefund * 100);
                 VivaRefund(refundPaymentRequest.Order.CaptureTransactionId, amount.ToString());
 
-                return new RefundPaymentResult
+                return Task.FromResult(new RefundPaymentResult
                 {
                     NewPaymentStatus = refundPaymentRequest.IsPartialRefund
                         ? Core.Domain.Payments.PaymentStatus.PartiallyRefunded
                         : Core.Domain.Payments.PaymentStatus.Refunded
-                };
+                });
             }
             catch (Exception)
             {
@@ -279,7 +280,8 @@ namespace Nop.Plugin.Payments.VivaWallet
                 { "Plugins.Payments.VivaWallet.PaymentInfo.Continue", "Continue" },
                 { "Plugins.Payments.VivaWallet.PaymentInfo.Expiration", "Expiration"},
                 { "Plugins.Payments.VivaWallet.PaymentInfo.CardNumber", "Card Number"},
-                { "Plugins.Payments.VivaWallet.PaymentInfo.CardholderName", "Cardholder Name"}
+                { "Plugins.Payments.VivaWallet.PaymentInfo.CardholderName", "Cardholder Name"},
+                { "Plugins.Payments.VivaWallet.PaymentInfo.Description", "Pay by credit / debit card"}
             };
             return new Dictionary<string, Dictionary<string, string>>
             {
@@ -294,7 +296,8 @@ namespace Nop.Plugin.Payments.VivaWallet
                 { "Plugins.Payments.VivaWallet.PaymentInfo.Continue", "Συνέχεια" },
                 { "Plugins.Payments.VivaWallet.PaymentInfo.Expiration", "Ημερ. Λήξης"},
                 { "Plugins.Payments.VivaWallet.PaymentInfo.CardNumber", "Αριθμός κάρτας"},
-                { "Plugins.Payments.VivaWallet.PaymentInfo.CardholderName", "'Ονομ/νυμο κατόχου"}
+                { "Plugins.Payments.VivaWallet.PaymentInfo.CardholderName", "'Ονομ/νυμο κατόχου"},
+                { "Plugins.Payments.VivaWallet.PaymentInfo.Description", "Πληρωμή με πιστωτική/χρεωστρική κάρτα"}
             };
             return new Dictionary<string, Dictionary<string, string>>
             {
@@ -302,7 +305,7 @@ namespace Nop.Plugin.Payments.VivaWallet
             };
         }
 
-        public override void Install()
+        public override async Task InstallAsync()
         {
             AllResources.Add(GetResourcesEn().First().Key, GetResourcesEn().First().Value);
             AllResources.Add(GetResourcesGr().First().Key, GetResourcesGr().First().Value);
@@ -311,29 +314,29 @@ namespace Nop.Plugin.Payments.VivaWallet
             {
                 foreach (var resources in item.Value)
                 {
-                    _localizationService.AddOrUpdatePluginLocaleResource(resources.Key, resources.Value, item.Key);
+                    await _localizationService.AddOrUpdateLocaleResourceAsync(resources.Key, resources.Value, item.Key);
                 }
             }
 
-            base.Install();
+            await base.InstallAsync();
         }
 
-        public override void Uninstall()
+        public override async Task UninstallAsync()
         {
             //default is english
             var defautlResources = GetResourcesEn();
 
             foreach (var item in defautlResources)
             {
-                _localizationService.DeletePluginLocaleResource(item.Key);
+                await _localizationService.DeleteLocaleResourcesAsync(item.Key);
             }
 
-            base.Uninstall();
+            await base.UninstallAsync();
         }
 
-        public VoidPaymentResult Void(VoidPaymentRequest voidPaymentRequest)
+        public Task<VoidPaymentResult> VoidAsync(VoidPaymentRequest voidPaymentRequest)
         {
-            return new VoidPaymentResult { Errors = new[] { "Void method not supported" } };
+            return Task.FromResult(new VoidPaymentResult { Errors = new[] { "Void method not supported" } });
         }
 
         public override string GetConfigurationPageUrl()
@@ -346,31 +349,35 @@ namespace Nop.Plugin.Payments.VivaWallet
             return new List<string> { AdminWidgetZones.CustomerDetailsBlock };
         }
 
-        public bool HidePaymentMethod(IList<ShoppingCartItem> cart)
+        public Task<bool> HidePaymentMethodAsync(IList<ShoppingCartItem> cart)
         {
-            return false;
+            return Task.FromResult(false);
         }
 
-        public decimal GetAdditionalHandlingFee(IList<ShoppingCartItem> cart)
+        public async Task<decimal> GetAdditionalHandlingFeeAsync(IList<ShoppingCartItem> cart)
         {
             return 0; // _paymentService.CalculateAdditionalFee(cart, 0, false);
         }
 
-        public IList<string> ValidatePaymentForm(IFormCollection form)
+        public Task<IList<string>> ValidatePaymentFormAsync(IFormCollection form)
         {
-            return new List<string>();
+            return Task.FromResult<IList<string>>(new List<string>());
         }
 
-        public ProcessPaymentRequest GetPaymentInfo(IFormCollection form)
+        public Task<ProcessPaymentRequest> GetPaymentInfoAsync(IFormCollection form)
         {
             var reqeust = new ProcessPaymentRequest();
 
-            return reqeust;
+            return Task.FromResult(reqeust);
+        }
+        public async Task<string> GetPaymentMethodDescriptionAsync()
+        {
+            return await _localizationService.GetResourceAsync("Plugins.Payments.VivaWallet.PaymentMethodDescription");
         }
 
-        public string GetPublicViewComponentName()
+        public Type GetPublicViewComponent()
         {
-            return "VivaWalletPayments";
+            return typeof(PaymentManualViewComponent);
         }
     }
 }
